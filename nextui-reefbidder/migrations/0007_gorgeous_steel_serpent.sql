@@ -1,0 +1,1 @@
+ALTER TABLE "listings" ADD COLUMN "current_bid" numeric(10, 2);

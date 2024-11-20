@@ -1,0 +1,1 @@
+ALTER TABLE "bids" ALTER COLUMN "listing_id" SET DATA TYPE integer;

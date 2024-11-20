@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.max-w-lg {
+    max-width: 302rem;
+  }
