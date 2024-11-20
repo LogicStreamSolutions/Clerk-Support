@@ -8,21 +8,11 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 
 export default function UserOnboardingPage() {
-    const router = useRouter(); // Moved here
-    const { user } = useUser(); // Moved here
-    const [error, setError] = useState(""); // Moved here
+    const router = useRouter();
+    const { user } = useUser();
+    const [error, setError] = useState("");
     
-    const [formData, setFormData] = useState<{
-        firstName: string;
-        lastName: string;
-        streetAddress: string;
-        streetAddress2: string;
-        city: string;
-        state: string;
-        zipCode: string;
-        phoneNumber: string;
-        country: string;
-    }>({
+    const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
         streetAddress: "",
@@ -31,12 +21,11 @@ export default function UserOnboardingPage() {
         state: "",
         zipCode: "",
         phoneNumber: "",
-        country: "",
+        country: ""
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -47,19 +36,21 @@ export default function UserOnboardingPage() {
             formDataToSubmit.append(key, value);
         });
 
+        // First, let's complete the onboarding process
         const res = await completeOnboarding(formDataToSubmit);
 
         if (res?.message) {
-            // Reloads the user's data from the Clerk API
+            // Reload user's data from Clerk API
             await user?.reload();
-            router.push("/");
         }
 
         if (res?.error) {
             setError(res?.error);
+            return; // Don't proceed further if there's an error
         }
 
         try {
+            // Now try to add the user to your system
             const response = await fetch("/api/addUser", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -70,14 +61,20 @@ export default function UserOnboardingPage() {
 
             if (response.ok) {
                 console.log("User added successfully!");
+                // Redirect only after the user has been added successfully
+                router.push("/");
             } else {
-                const errorText = await response.text(); // Capture the server error message
+                const errorText = await response.text();
                 console.error(`Failed to add user. Status: ${response.status}, Message: ${errorText}`);
+                setError(`Failed to add user: ${errorText}`);
             }
         } catch (error) {
             console.error("Error submitting form:", error);
+            setError("An unexpected error occurred. Please try again.");
         }
     };
+
+    // ... rest of your JSX remains the same
 
     return (
         <div className="flex justify-center items-start min-h-screen p-8">
